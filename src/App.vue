@@ -28,7 +28,16 @@
       @rendered="renderedHandler"
       @error="errorHandler"
     />
-    <div v-else class="unsupported-message">不支持的文件格式</div>
+    <div v-else class="type-selector">
+      <p>无法自动识别文件类型，请手动选择：</p>
+      <select v-model="selectedType">
+        <option value="word">Word (.docx)</option>
+        <option value="excel">Excel (.xlsx)</option>
+        <option value="powerpoint">PowerPoint (.pptx)</option>
+        <option value="pdf">PDF (.pdf)</option>
+      </select>
+      <button @click="confirmType">确认</button>
+    </div>
   </div>
 </template>
 
@@ -48,6 +57,8 @@ import { ref } from "vue";
 const loading = ref(true);
 const fileUrl = ref("");
 const fileType = ref("");
+const showTypeSelector = ref(false);
+const selectedType = ref("");
 
 // 从URL参数获取文件地址
 const urlParams = new URLSearchParams(window.location.search);
@@ -61,15 +72,17 @@ if (fileParam) {
   console.log("fileName: ", fileName);
   const ext = fileName.split(".").pop().toLowerCase();
   console.log("ext: ", ext);
-  if (["docx"].includes(ext)) {
-    fileType.value = "word";
-  } else if (["xlsx"].includes(ext)) {
-    fileType.value = "excel";
-  } else if (["pptx"].includes(ext)) {
-    fileType.value = "powerpoint";
-  }
-  if (ext === "pdf") {
-    fileType.value = "pdf";
+  const supportedTypes = {
+    docx: "word",
+    xlsx: "excel",
+    pptx: "powerpoint",
+    pdf: "pdf"
+  };
+  
+  if (ext in supportedTypes) {
+    fileType.value = supportedTypes[ext];
+  } else {
+    showTypeSelector.value = true;
   }
 }
 
@@ -83,15 +96,49 @@ const errorHandler = () => {
   loading.value = false;
   console.log("渲染失败");
 };
+
+const confirmType = () => {
+  fileType.value = selectedType.value;
+  showTypeSelector.value = false;
+};
 </script>
 
 <style scoped>
-.unsupported-message {
+.type-selector {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   height: 100vh;
-  font-size: 24px;
-  color: red;
+  gap: 16px;
+}
+
+.type-selector p {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.type-selector select {
+  padding: 8px 16px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 16px;
+  min-width: 200px;
+}
+
+.type-selector button {
+  padding: 8px 16px;
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.type-selector button:hover {
+  background-color: #40a9ff;
 }
 </style>
