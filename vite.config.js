@@ -15,4 +15,17 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  base: './',
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vue-office-docx': ['@vue-office/docx'],
+          'vue-office-excel': ['@vue-office/excel'],
+          'vue-office-pptx': ['@vue-office/pptx'],
+          'vue-office-pdf': ['@vue-office/pdf']
+        }
+      }
+    }
+  }
 })
