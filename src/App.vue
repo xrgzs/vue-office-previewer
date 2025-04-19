@@ -1,34 +1,14 @@
 <template>
   <div v-loading="loading">
-    <vue-office-docx
-      v-if="fileType === 'word'"
-      :src="fileUrl"
-      style="height: 100vh"
-      @rendered="renderedHandler"
-      @error="errorHandler"
-    />
-    <vue-office-excel
-      v-else-if="fileType === 'excel'"
-      :src="fileUrl"
-      style="height: 100vh"
-      @rendered="renderedHandler"
-      @error="errorHandler"
-    />
-    <vue-office-pptx
-      v-else-if="fileType === 'powerpoint'"
-      :src="fileUrl"
-      style="height: 100vh"
-      @rendered="renderedHandler"
-      @error="errorHandler"
-    />
-    <vue-office-pdf
-      v-else-if="fileType === 'pdf'"
-      :src="fileUrl"
-      style="height: 100vh"
-      @rendered="renderedHandler"
-      @error="errorHandler"
-    />
-    <div v-else class="type-selector">
+    <vue-office-docx v-if="fileType === 'word'" :src="fileUrl" style="height: 100vh" @rendered="renderedHandler"
+      @error="errorHandler" />
+    <vue-office-excel v-else-if="fileType === 'excel'" :src="fileUrl" style="height: 100vh" @rendered="renderedHandler"
+      @error="errorHandler" />
+    <vue-office-pptx v-else-if="fileType === 'powerpoint'" :src="fileUrl" style="height: 100vh"
+      @rendered="renderedHandler" @error="errorHandler" />
+    <vue-office-pdf v-else-if="fileType === 'pdf'" :src="fileUrl" style="height: 100vh" @rendered="renderedHandler"
+      @error="errorHandler" />
+    <div v-if="showTypeSelector" class="type-selector">
       <p>无法自动识别文件类型，请手动选择：</p>
       <select v-model="selectedType">
         <option value="word">Word (.docx)</option>
@@ -63,12 +43,15 @@ const selectedType = ref("");
 // 从URL参数获取文件地址
 const urlParams = new URLSearchParams(window.location.search);
 const fileParam = urlParams.get("file");
+let fileName = urlParams.get("name");
 console.log("fileParam: ", fileParam);
 if (fileParam) {
   const url = new URL(fileParam);
   console.log("url: ", url);
   fileUrl.value = url.href;
-  const fileName = decodeURIComponent(url.pathname.split("/").pop());
+  if (!fileName) {
+    fileName = decodeURIComponent(url.pathname.split("/").pop());
+  }
   console.log("fileName: ", fileName);
   const ext = fileName.split(".").pop().toLowerCase();
   console.log("ext: ", ext);
@@ -78,7 +61,7 @@ if (fileParam) {
     pptx: "powerpoint",
     pdf: "pdf"
   };
-  
+
   if (ext in supportedTypes) {
     fileType.value = supportedTypes[ext];
   } else {
