@@ -21,17 +21,25 @@
 import { defineAsyncComponent, ref } from "vue";
 
 // 动态加载组件函数
+const componentCache = {};
 const loadComponent = (type) => {
-  switch (type) {
-    case 'word':
-      return defineAsyncComponent(() => import('@vue-office/docx'));
-    case 'excel':
-      return defineAsyncComponent(() => import('@vue-office/excel'));
-    case 'powerpoint':
-      return defineAsyncComponent(() => import('@vue-office/pptx'));
-    case 'pdf':
-      return defineAsyncComponent(() => import('@vue-office/pdf'));
+  if (!componentCache[type]) {
+    switch (type) {
+      case 'word':
+        componentCache[type] = defineAsyncComponent(() => import('@vue-office/docx'));
+        break;
+      case 'excel':
+        componentCache[type] = defineAsyncComponent(() => import('@vue-office/excel'));
+        break;
+      case 'powerpoint':
+        componentCache[type] = defineAsyncComponent(() => import('@vue-office/pptx'));
+        break;
+      case 'pdf':
+        componentCache[type] = defineAsyncComponent(() => import('@vue-office/pdf'));
+        break;
+    }
   }
+  return componentCache[type];
 };
 
 // 使用ref创建响应式数据
