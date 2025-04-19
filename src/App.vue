@@ -82,9 +82,10 @@ const renderedHandler = () => {
   console.log("渲染完成");
 };
 
-const errorHandler = () => {
+const errorHandler = (error) => {
   loading.value = false;
-  console.log("渲染失败");
+  console.error("渲染失败:", error);
+  alert(`文件渲染失败: ${error.message || '未知错误'}`);
 };
 
 const confirmType = () => {
