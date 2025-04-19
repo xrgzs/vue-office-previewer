@@ -1,14 +1,8 @@
 <template>
   <div v-loading="loading">
-    <vue-office-docx v-if="fileType === 'word'" :src="fileUrl" style="height: 100vh" @rendered="renderedHandler"
-      @error="errorHandler" />
-    <vue-office-excel v-else-if="fileType === 'excel'" :src="fileUrl" style="height: 100vh" @rendered="renderedHandler"
-      @error="errorHandler" />
-    <vue-office-pptx v-else-if="fileType === 'powerpoint'" :src="fileUrl" style="height: 100vh"
+    <component v-if="fileType" :is="loadComponent(fileType)" :src="fileUrl" style="height: 100vh"
       @rendered="renderedHandler" @error="errorHandler" />
-    <vue-office-pdf v-else-if="fileType === 'pdf'" :src="fileUrl" style="height: 100vh" @rendered="renderedHandler"
-      @error="errorHandler" />
-    <div v-if="showTypeSelector" class="type-selector">
+    <div v-else-if="showTypeSelector" class="type-selector">
       <p>无法自动识别文件类型，请手动选择：</p>
       <select v-model="selectedType">
         <option value="word">Word (.docx)</option>
@@ -18,20 +12,27 @@
       </select>
       <button @click="confirmType">确认</button>
     </div>
+    <div v-else class="unsupported-message">不支持的文件格式</div>
   </div>
 </template>
 
 <script setup>
-// 引入VueOfficeDocx组件
-import VueOfficeDocx from "@vue-office/docx";
-import VueOfficeExcel from "@vue-office/excel";
-import VueOfficePptx from "@vue-office/pptx";
-import VueOfficePdf from "@vue-office/pdf";
+// 动态导入组件
+import { defineAsyncComponent, ref } from "vue";
 
-// 引入相关样式
-import "@vue-office/docx/lib/index.css";
-import "@vue-office/excel/lib/index.css";
-import { ref } from "vue";
+// 动态加载组件函数
+const loadComponent = (type) => {
+  switch (type) {
+    case 'word':
+      return defineAsyncComponent(() => import('@vue-office/docx'));
+    case 'excel':
+      return defineAsyncComponent(() => import('@vue-office/excel'));
+    case 'powerpoint':
+      return defineAsyncComponent(() => import('@vue-office/pptx'));
+    case 'pdf':
+      return defineAsyncComponent(() => import('@vue-office/pdf'));
+  }
+};
 
 // 使用ref创建响应式数据
 const loading = ref(true);
@@ -55,16 +56,22 @@ if (fileParam) {
   console.log("fileName: ", fileName);
   const ext = fileName.split(".").pop().toLowerCase();
   console.log("ext: ", ext);
-  const supportedTypes = {
-    docx: "word",
-    xlsx: "excel",
-    pptx: "powerpoint",
-    pdf: "pdf"
-  };
-
-  if (ext in supportedTypes) {
-    fileType.value = supportedTypes[ext];
+  if (["docx"].includes(ext)) {
+    fileType.value = "word";
+    import('@vue-office/docx/lib/index.css');
+  } else if (["xlsx"].includes(ext)) {
+    fileType.value = "excel";
+    import('@vue-office/excel/lib/index.css');
+  } else if (["pptx"].includes(ext)) {
+    fileType.value = "powerpoint";
+  } else if (["pdf"].includes(ext)) {
+    fileType.value = "pdf";
+  } else if (["doc", "xls", "ppt"].includes(ext)) {
+    // 不支持
+    fileType.value = "";
+    showTypeSelector.value = false;
   } else {
+    // 显示选择器
     showTypeSelector.value = true;
   }
 }
@@ -123,5 +130,15 @@ const confirmType = () => {
 
 .type-selector button:hover {
   background-color: #40a9ff;
+}
+
+.unsupported-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 24px;
+  color: #ff4d4f;
+  background-color: #fff2f0;
 }
 </style>
